@@ -26,13 +26,14 @@ const checkoutCart = (skus, { sku }, quantity = 1) => {
 const formatDetailedCart = cartItems => {
   const details = cartItems.reduce((acc, current) => {
     if (acc.hasOwnProperty(current.sku)) {
+      console.log('wut', acc[current.sku].price, current.price);
       acc = {
         ...acc,
         [current.sku]: {
           ...current,
-          price: acc[current.sku].price + current.price,
+          price: acc[current.sku].price,
           formattedPrice: toCurrency({
-            price: acc[current.sku].price + current.price,
+            price: acc[current.sku].price,
             currency: current.currency,
           }),
           quantity: acc[current.sku].quantity + 1,
@@ -94,9 +95,11 @@ const reducer = (cart, action) => {
           'skus',
           JSON.stringify(checkoutCart(skus, action.sku))
         );
+
       return {
         ...cart,
         skus: checkoutCart(skus, action.sku),
+        cartItems: [...cart.cartItems, action.sku],
       };
     case 'handleQuantityChange':
       typeof localStorage !== 'undefined' &&
@@ -245,7 +248,7 @@ export const useStripeCart = () => {
 
   const addItem = sku => {
     dispatch({ type: 'addToCheckoutCart', sku });
-    dispatch({ type: 'addToCartItems', sku });
+    // dispatch({ type: 'addToCartItems', sku });
   };
 
   const removeCartItem = sku => {

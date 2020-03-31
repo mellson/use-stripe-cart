@@ -7,16 +7,16 @@ import { toCurrency } from './util';
 
 const fakeData = [
   {
-    name: 'Bananas',
+    name: 'Tangerines',
     sku: 'sku_GBJ2Ep8246qeeT',
-    price: 400,
+    price: 100,
     image: 'https://www.fillmurray.com/300/300',
     currency: 'usd',
   },
   {
-    name: 'Oranges',
+    name: 'Bananas',
     sku: 'sku_GBJ2WWfMaGNC2Z',
-    price: 200,
+    price: 400,
     image: 'https://www.fillmurray.com/300/300',
     currency: 'usd',
   },
