@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/use-stripe-cart/static/css/main.2c6a48fe.chunk.css",
+    "main.js": "/use-stripe-cart/static/js/main.3ec58c06.chunk.js",
+    "main.js.map": "/use-stripe-cart/static/js/main.3ec58c06.chunk.js.map",
+    "runtime-main.js": "/use-stripe-cart/static/js/runtime-main.8356128b.js",
+    "runtime-main.js.map": "/use-stripe-cart/static/js/runtime-main.8356128b.js.map",
+    "static/js/2.cd75e4c9.chunk.js": "/use-stripe-cart/static/js/2.cd75e4c9.chunk.js",
+    "static/js/2.cd75e4c9.chunk.js.map": "/use-stripe-cart/static/js/2.cd75e4c9.chunk.js.map",
+    "index.html": "/use-stripe-cart/index.html",
+    "precache-manifest.2955a32247441590e523f792c4ffe9a9.js": "/use-stripe-cart/precache-manifest.2955a32247441590e523f792c4ffe9a9.js",
+    "service-worker.js": "/use-stripe-cart/service-worker.js",
+    "static/css/main.2c6a48fe.chunk.css.map": "/use-stripe-cart/static/css/main.2c6a48fe.chunk.css.map",
+    "static/js/2.cd75e4c9.chunk.js.LICENSE.txt": "/use-stripe-cart/static/js/2.cd75e4c9.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.8356128b.js",
+    "static/js/2.cd75e4c9.chunk.js",
+    "static/css/main.2c6a48fe.chunk.css",
+    "static/js/main.3ec58c06.chunk.js"
+  ]
+}
