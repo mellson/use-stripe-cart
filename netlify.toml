@@ -1,0 +1,3 @@
+  command = "yarn predeploy"
+  publish="example/build"
+  base = "example/build"
