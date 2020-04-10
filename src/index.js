@@ -1,5 +1,5 @@
 import React, { createContext, useReducer, useContext } from 'react';
-import { toCurrency, calculateTotalPrice } from './util';
+import { toCurrency, calculateTotalValue } from './util';
 
 /**
  * @function checkoutCart
@@ -26,8 +26,9 @@ const checkoutCart = (skus, { sku }, quantity = 1) => {
 const formatDetailedCart = (currency, cartItems, language) => {
   return cartItems.reduce((acc, current) => {
     const quantity = (acc[current.sku]?.quantity ?? 0) + 1;
-    const price = (acc[current.sku]?.price ?? 0) + current.price;
-    const formattedPrice = toCurrency({ price, currency, language });
+    const price = current.price;
+    const value = (acc[current.sku]?.value ?? 0) + current.price;
+    const formattedValue = toCurrency({ value, currency, language });
 
     return {
       ...acc,
@@ -35,17 +36,11 @@ const formatDetailedCart = (currency, cartItems, language) => {
         ...current,
         quantity,
         price,
-        formattedPrice,
+        formattedValue,
+        value,
       },
     };
   }, {});
-};
-
-const formatCheckoutCart = (checkoutData) => {
-  return Object.keys(checkoutData).map((item) => ({
-    sku: item,
-    quantity: checkoutData[item],
-  }));
 };
 
 const updateQuantity = (quantity, skuID, skus) => {
@@ -63,16 +58,10 @@ const removeItem = (skuID, cartItems) => {
 };
 
 const reduceItemByOne = (skuID, cartItems) => {
-  const newCartItems = cartItems.filter((item) => item.sku !== skuID);
-  const itemsToReduce = cartItems.filter((item) => item.sku === skuID);
-  itemsToReduce.shift();
-  return [...newCartItems, ...itemsToReduce];
-};
-
-const removeSku = (skuID, skus) => {
-  delete skus[skuID];
-
-  return skus;
+  const newCartItems = cartItems;
+  const indexToRemove = newCartItems.map((item) => item.sku).indexOf(skuID);
+  newCartItems.splice(indexToRemove, 1);
+  return newCartItems;
 };
 
 const reducer = (cart, action) => {
@@ -80,32 +69,11 @@ const reducer = (cart, action) => {
 
   switch (action.type) {
     case 'addToCheckoutCart':
-      typeof localStorage !== 'undefined' &&
-        localStorage.setItem(
-          'skus',
-          JSON.stringify(checkoutCart(skus, action.sku))
-        );
       return {
         ...cart,
         skus: checkoutCart(skus, action.sku),
       };
-    case 'handleQuantityChange':
-      typeof localStorage !== 'undefined' &&
-        localStorage.setItem(
-          'skus',
-          JSON.stringify(updateQuantity(action.quantity, action.skuID, skus))
-        );
-      return {
-        ...cart,
-        skus: updateQuantity(action.quantity, action.skuID, skus),
-      };
     case 'delete':
-      typeof localStorage !== 'undefined' &&
-        localStorage.setItem(
-          'skus',
-          JSON.stringify(removeSku(action.skuID, skus))
-        );
-
       const index = cartItems.findIndex((item) => item.sku === action.skuID);
 
       if (index !== -1) {
@@ -113,7 +81,6 @@ const reducer = (cart, action) => {
       }
       return {
         ...cart,
-        skus: removeSku(action.skuID, skus),
         cartItems,
       };
 
@@ -185,15 +152,10 @@ export const CartProvider = ({
   billingAddressCollection = false,
   allowedCountries = null,
 }) => {
-  const skuStorage =
-    typeof window !== 'undefined'
-      ? JSON.parse(localStorage.getItem('skus'))
-      : {};
   return (
     <CartContext.Provider
       value={useReducer(reducer, {
         lastClicked: '',
-        skus: skuStorage || {},
         shouldDisplayCart: false,
         cartItems: [],
         stripe,
@@ -202,6 +164,7 @@ export const CartProvider = ({
         currency,
         billingAddressCollection,
         allowedCountries,
+        skus: {},
       })}
     >
       {children}
@@ -213,7 +176,6 @@ export const useStripeCart = () => {
   const [cart, dispatch] = useContext(CartContext);
 
   const {
-    skus,
     stripe,
     lastClicked,
     shouldDisplayCart,
@@ -226,27 +188,18 @@ export const useStripeCart = () => {
     allowedCountries,
   } = cart;
 
-  let storageReference =
-    typeof localStorage === 'object' &&
-    JSON.parse(localStorage.getItem('skus'));
-
-  if (storageReference === null) {
-    storageReference = {};
-  }
-
-  const checkoutData = formatCheckoutCart(skus);
-
-  const totalPrice = () => calculateTotalPrice(currency, cartItems);
-
-  typeof localStorage === 'object' &&
-    localStorage.setItem('skus', JSON.stringify(storageReference));
+  const totalPrice = () => calculateTotalValue(currency, cartItems);
 
   const cartDetails = formatDetailedCart(currency, cartItems, language);
 
-  const cartCount = checkoutData.reduce(
-    (acc, current) => acc + current.quantity,
-    0
-  );
+  const checkoutData = Object.keys(cartDetails).map((item) => {
+    return {
+      sku: cartDetails[item].sku,
+      quantity: cartDetails[item].quantity,
+    };
+  });
+
+  const cartCount = cartItems.length;
 
   const addItem = (sku) => {
     dispatch({ type: 'addToCheckoutCart', sku });
@@ -259,10 +212,6 @@ export const useStripeCart = () => {
 
   const reduceItemByOne = (sku) => {
     dispatch({ type: 'reduceItemByOne', sku });
-  };
-
-  const handleQuantityChange = (quantity, skuID) => {
-    dispatch({ type: 'handleQuantityChange', quantity, skuID });
   };
 
   const deleteItem = (skuID) => dispatch({ type: 'delete', skuID });
@@ -290,7 +239,6 @@ export const useStripeCart = () => {
         allowedCountries,
       };
     }
-    console.log('options', options, stripe);
 
     const { error } = await stripe.redirectToCheckout(options);
     if (error) {
@@ -299,13 +247,11 @@ export const useStripeCart = () => {
   };
 
   return {
-    skus,
     addItem,
     deleteItem,
     cartCount,
     checkoutData,
     redirectToCheckout,
-    handleQuantityChange,
     lastClicked,
     storeLastClicked,
     shouldDisplayCart,
